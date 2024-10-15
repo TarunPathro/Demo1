@@ -23,7 +23,7 @@ jobs:
         with:
           apiKey: ${{ secrets.BLAZEMETER_API_KEY }}
           apiSecret: ${{ secrets.BLAZEMETER_API_SECRET }}
-          testID: 75027386
+          testID: 14423989
           testName: your_test_name # optional, default is 0
 
       
