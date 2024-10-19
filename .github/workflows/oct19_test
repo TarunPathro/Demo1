@@ -45,7 +45,7 @@ jobs:
         TEST_DURATION=300  # Total test duration in seconds (5 minutes in this example)
         RAMP_UP=60         # Ramp-up period in seconds (1 minute in this example)
         RAMP_DOWN=60       # Ramp-down period in seconds (1 minute in this example)
-        USERS_COUNT=100    # Number of virtual users
+        USERS_COUNT=10    # Number of virtual users
         
         # Start the BlazeMeter test with specified configuration
         curl -X POST "https://a.blazemeter.com/api/v4/tests/${TEST_ID}/start" \
