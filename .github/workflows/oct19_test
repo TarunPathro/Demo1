@@ -1,9 +1,9 @@
-name: Run BlazeMeter Test with JMX
+name: Run BlazeMeter Test with JMX and Custom Parameters
 
 on:
   push:
     branches:
-      - main
+      - test
 
 jobs:
   run-blazemeter-test:
@@ -16,12 +16,12 @@ jobs:
     - name: Install curl
       run: sudo apt-get install curl
 
-    - name: Install jq
+    - name: Install jq (JSON processor)
       run: sudo apt-get install jq
 
     - name: Upload and Run BlazeMeter JMX Test
       env:
-        API_ID: ${{ secrets.BLAZEMETER_API_KEY }}
+        API_ID: ${{ secrets.BLAZEMETER_API_ID }}
         API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
         PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}  # Optional, if you want to use a specific project ID
       run: |
@@ -40,17 +40,34 @@ jobs:
         TEST_ID=$(echo $RESPONSE | jq -r '.id')
         
         echo "Test uploaded successfully with ID: $TEST_ID"
+
+        # Define the test parameters (Duration, Ramp-up, Ramp-down)
+        TEST_DURATION=300  # Total test duration in seconds (5 minutes in this example)
+        RAMP_UP=60         # Ramp-up period in seconds (1 minute in this example)
+        RAMP_DOWN=60       # Ramp-down period in seconds (1 minute in this example)
+        USERS_COUNT=100    # Number of virtual users
         
-        # Start the BlazeMeter test
+        # Start the BlazeMeter test with specified configuration
         curl -X POST "https://a.blazemeter.com/api/v4/tests/${TEST_ID}/start" \
           -u "${API_ID}:${API_SECRET}" \
           -H "Content-Type: application/json" \
-          -d '{}'
+          -d '{
+              "configuration": {
+                "execution": [{
+                  "concurrency": '${USERS_COUNT}',
+                  "rampUp": '${RAMP_UP}',
+                  "holdFor": '${TEST_DURATION}',
+                  "rampDown": '${RAMP_DOWN}'
+                }]
+              }
+            }'
         
-        echo "Test started. Waiting for results..."
+        echo "Test started with ${USERS_COUNT} users, ramp-up of ${RAMP_UP}s, duration of ${TEST_DURATION}s, and ramp-down of ${RAMP_DOWN}s."
 
-        # Optionally wait and fetch test status
+        # Optionally wait for a while before checking the status
         sleep 60
+
+        # Fetch test status (optional)
         curl -u "${API_ID}:${API_SECRET}" \
           "https://a.blazemeter.com/api/v4/masters?testId=${TEST_ID}" \
           -H "Content-Type: application/json"
