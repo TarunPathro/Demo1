@@ -23,7 +23,7 @@ jobs:
       env:
         API_ID: ${{ secrets.BLAZEMETER_API_ID }}
         API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
-        # PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}
+        PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}
       run: |
         # Path to the JMX file in the repo
         JMX_FILE_PATH="./load-test.jmx"
