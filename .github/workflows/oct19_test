@@ -1,0 +1,56 @@
+name: Run BlazeMeter Test with JMX
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-blazemeter-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install curl
+      run: sudo apt-get install curl
+
+    - name: Install jq
+      run: sudo apt-get install jq
+
+    - name: Upload and Run BlazeMeter JMX Test
+      env:
+        API_ID: ${{ secrets.BLAZEMETER_API_KEY }}
+        API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
+        PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}  # Optional, if you want to use a specific project ID
+      run: |
+        # Path to your local JMX file in the GitHub repo
+        JMX_FILE_PATH="./path/to/your-test-script.jmx"
+        
+        # Upload the JMX script to BlazeMeter
+        RESPONSE=$(curl -X POST "https://a.blazemeter.com/api/v4/tests" \
+          -u "${API_ID}:${API_SECRET}" \
+          -F "file=@${JMX_FILE_PATH}" \
+          -F 'testName="GitHub Action Triggered Test"' \
+          -F 'projectId=${PROJECT_ID}' \
+          -H "Content-Type: multipart/form-data")
+        
+        # Extract the test ID from the upload response
+        TEST_ID=$(echo $RESPONSE | jq -r '.id')
+        
+        echo "Test uploaded successfully with ID: $TEST_ID"
+        
+        # Start the BlazeMeter test
+        curl -X POST "https://a.blazemeter.com/api/v4/tests/${TEST_ID}/start" \
+          -u "${API_ID}:${API_SECRET}" \
+          -H "Content-Type: application/json" \
+          -d '{}'
+        
+        echo "Test started. Waiting for results..."
+
+        # Optionally wait and fetch test status
+        sleep 60
+        curl -u "${API_ID}:${API_SECRET}" \
+          "https://a.blazemeter.com/api/v4/masters?testId=${TEST_ID}" \
+          -H "Content-Type: application/json"
