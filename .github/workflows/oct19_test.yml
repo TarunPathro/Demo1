@@ -29,7 +29,8 @@ jobs:
         JMX_FILE_PATH="./load-test.jmx"
         
         # Upload the JMX script to BlazeMeter
-        RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/api/v4/tests" \
+        # RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/api/v4/tests" \
+          RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/app/#/accounts/231369/workspaces/225395/projects/288343/tests" \
           -u "${API_ID}:${API_SECRET}" \
           -F "file=@${JMX_FILE_PATH}" \
           -F 'testName="GitHub Action Triggered Test"' \
