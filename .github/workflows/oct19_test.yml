@@ -1,85 +1,29 @@
-name: Run BlazeMeter Test
-
-on:
-  push:
-    branches:
-      - dummy
-
+name: github-action
+env:
+  apiKey: '${{ secrets.BLAZEMETER_API_KEY }}'
+  apiSecret: '${{ secrets.BLAZEMETER_API_SECRET }}'
+  createTest: 'true'
+  inputStartFile: ./load-test.jmx
+  testName: API_Load_Test
+  projectID: 288343
+  continuePipeline: 'false'
+  showTailLog: 'false'
+'on': push
 jobs:
-  run-blazemeter-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Install curl
-      run: sudo apt-get install curl
-
-    - name: Install jq (JSON processor)
-      run: sudo apt-get install jq
-
-    - name: Upload and Run BlazeMeter JMX Test
-      env:
-        API_ID: ${{ secrets.BLAZEMETER_API_ID }}
-        API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
-        PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}
-      run: |
-        # Path to the JMX file in the repo
-        JMX_FILE_PATH="./load-test.jmx"
-        
-        # Upload the JMX script to BlazeMeter
-        # RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/api/v4/tests" \
-          RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/app/#/accounts/231369/workspaces/225395/projects/288343/tests" \
-          -u "${API_ID}:${API_SECRET}" \
-          -F "file=@${JMX_FILE_PATH}" \
-          -F 'testName="GitHub Action Triggered Test"' \
-          -F 'projectId=${PROJECT_ID}' \
-          -H "Content-Type: multipart/form-data")
-        
-        # Print full API response for debugging
-        echo "API Response: $RESPONSE"
-        
-        # Extract the test ID (if it exists)
-        TEST_ID=$(echo $RESPONSE | jq -r '.id')
-
-        if [ "$TEST_ID" == "null" ] || [ -z "$TEST_ID" ]; then
-          echo "Error: No test ID returned. Check the API response for details."
-          exit 1
-        else
-          echo "Test uploaded successfully with ID: $TEST_ID"
-        fi
-
-        # Define the test parameters (Duration, Ramp-up, Ramp-down)
-        TEST_DURATION=300  # Total test duration in seconds (5 minutes in this example)
-        RAMP_UP=60         # Ramp-up period in seconds (1 minute in this example)
-        RAMP_DOWN=60       # Ramp-down period in seconds (1 minute in this example)
-        USERS_COUNT=10    # Number of virtual users
-        
-        # Start the BlazeMeter test with specified configuration
-        curl -X POST "https://a.blazemeter.com/api/v4/tests/${TEST_ID}/start" \
-          -u "${API_ID}:${API_SECRET}" \
-          -H "Content-Type: application/json" \
-          -d '{
-              "configuration": {
-                "execution": [{
-                  "concurrency": '${USERS_COUNT}',
-                  "rampUp": '${RAMP_UP}',
-                  "holdFor": '${TEST_DURATION}',
-                  "rampDown": '${RAMP_DOWN}'
-                }]
-              }
-            }'
-        
-        echo "Test started with ${USERS_COUNT} users, ramp-up of ${RAMP_UP}s, duration of ${TEST_DURATION}s, and ramp-down of ${RAMP_DOWN}s."
-
-        # Optionally wait for a while before checking the status
-        sleep 60
-
-        # Fetch test status (optional)
-        curl -u "${API_ID}:${API_SECRET}" \
-          "https://a.blazemeter.com/api/v4/masters?testId=${TEST_ID}" \
-          -H "Content-Type: application/json"
-
-
-
+  github-action: null
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2.3.4
+    - name: Run Blazemeter test
+      uses: BlazeRunner-BZR/Github-Action@v8.1
+  id: run-test
+  with: null
+  apiKey: '${{ secrets.BLAZEMETER_API_KEY }}'
+  apiSecret: '${{ secrets.BLAZEMETER_API_SECRET }}'
+  createTest: '${{env.createTest}}'
+  inputStartFile: '${{env.inputStartFile}}'
+  testName: '${{env.testName}}'
+  projectID: '${{env.projectID}}'
+  continuePipeline: '${{env.continuePipeline}}'
+  showTailLog: '${{env.showTailLog}}'
