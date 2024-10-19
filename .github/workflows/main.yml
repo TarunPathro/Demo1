@@ -5,7 +5,7 @@ name: BlazeMeter Performance Test
 on:
   push:
     branches:
-      - test
+      - dummy
   pull_request:
 
 jobs:
