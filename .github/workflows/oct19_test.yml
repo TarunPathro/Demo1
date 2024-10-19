@@ -1,4 +1,4 @@
-name: Run BlazeMeter Test with JMX and Custom Parameters
+name: Run BlazeMeter Test
 
 on:
   push:
@@ -13,14 +13,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Add a step to list the files in the repository to verify the file is present
-    - name: List files
-      run: ls -R
-
-    # Add a step to log the JMX file path
-    - name: Log JMX file path
-      run: echo "JMX file path is ${JMX_FILE_PATH}"
-
     - name: Install curl
       run: sudo apt-get install curl
 
@@ -31,23 +23,31 @@ jobs:
       env:
         API_ID: ${{ secrets.BLAZEMETER_API_ID }}
         API_SECRET: ${{ secrets.BLAZEMETER_API_SECRET }}
-        PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}  # Optional, if you want to use a specific project ID
+        PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}
       run: |
-        # Path to your local JMX file in the GitHub repo
+        # Path to the JMX file in the repo
         JMX_FILE_PATH="./load-test.jmx"
         
         # Upload the JMX script to BlazeMeter
-        RESPONSE=$(curl -X POST "https://a.blazemeter.com/api/v4/tests" \
+        RESPONSE=$(curl -v -X POST "https://a.blazemeter.com/api/v4/tests" \
           -u "${API_ID}:${API_SECRET}" \
           -F "file=@${JMX_FILE_PATH}" \
           -F 'testName="GitHub Action Triggered Test"' \
           -F 'projectId=${PROJECT_ID}' \
           -H "Content-Type: multipart/form-data")
         
-        # Extract the test ID from the upload response
-        TEST_ID=$(echo $RESPONSE | jq -r '.id')
+        # Print full API response for debugging
+        echo "API Response: $RESPONSE"
         
-        echo "Test uploaded successfully with ID: $TEST_ID"
+        # Extract the test ID (if it exists)
+        TEST_ID=$(echo $RESPONSE | jq -r '.id')
+
+        if [ "$TEST_ID" == "null" ] || [ -z "$TEST_ID" ]; then
+          echo "Error: No test ID returned. Check the API response for details."
+          exit 1
+        else
+          echo "Test uploaded successfully with ID: $TEST_ID"
+        fi
 
         # Define the test parameters (Duration, Ramp-up, Ramp-down)
         TEST_DURATION=300  # Total test duration in seconds (5 minutes in this example)
@@ -79,3 +79,6 @@ jobs:
         curl -u "${API_ID}:${API_SECRET}" \
           "https://a.blazemeter.com/api/v4/masters?testId=${TEST_ID}" \
           -H "Content-Type: application/json"
+
+
+
