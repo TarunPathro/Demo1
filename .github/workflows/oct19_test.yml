@@ -3,7 +3,7 @@ name: Run BlazeMeter Test
 on:
   push:
     branches:
-      - test
+      - dummy
 
 jobs:
   run-blazemeter-test:
