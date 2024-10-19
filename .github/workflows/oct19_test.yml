@@ -13,6 +13,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Add a step to list the files in the repository to verify the file is present
+    - name: List files
+      run: ls -R
+
+    # Add a step to log the JMX file path
+    - name: Log JMX file path
+      run: echo "JMX file path is ${JMX_FILE_PATH}"
+
     - name: Install curl
       run: sudo apt-get install curl
 
@@ -26,7 +34,7 @@ jobs:
         PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}  # Optional, if you want to use a specific project ID
       run: |
         # Path to your local JMX file in the GitHub repo
-        JMX_FILE_PATH="./Demo1/test/load-test.jmx"
+        JMX_FILE_PATH=".\\Demo1\\test\\load-test.jmx"
         
         # Upload the JMX script to BlazeMeter
         RESPONSE=$(curl -X POST "https://a.blazemeter.com/api/v4/tests" \
