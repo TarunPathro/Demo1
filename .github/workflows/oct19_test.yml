@@ -34,7 +34,7 @@ jobs:
         PROJECT_ID: ${{ secrets.BLAZEMETER_PROJECT_ID }}  # Optional, if you want to use a specific project ID
       run: |
         # Path to your local JMX file in the GitHub repo
-        JMX_FILE_PATH=".\Demo1\test\load-test.jmx"
+        JMX_FILE_PATH="./load-test.jmx"
         
         # Upload the JMX script to BlazeMeter
         RESPONSE=$(curl -X POST "https://a.blazemeter.com/api/v4/tests" \
